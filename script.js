@@ -53,7 +53,12 @@ document.addEventListener('DOMContentLoaded', fetch('https://storage.googleapis.
             const {inputs, labels} = tensorData;
     
             // Train the model  
-            trainModel(model, inputs, labels).then(console.log('Done Training'));
+            trainModel(model, inputs, labels).then(()=>{
+                console.log('Done Training');
+                testModel(model, cleanedDataset, tensorData);
+            });
+
+
         })
     })
 );
@@ -76,8 +81,13 @@ document.addEventListener('DOMContentLoaded', fetch('https://storage.googleapis.
     // units sets the weight of the input features (representative input)
     // Features - https://stackoverflow.com/questions/30669854/what-is-the-definition-of-feature-in-neural-network#:~:text=Features%20in%20a%20neural%20network,not%20the%20hidden%20layer%20nodes. 
     model.add(tf.layers.dense(
-        {inputShape: [1], units:1, useBias:true}));
+        {inputShape: [1], units:50, useBias:true}));
 
+    model.add(tf.layers.dense(
+            {inputShape: [1], units:50, activation:'sigmoid'}));
+    
+    model.add(tf.layers.dense(
+                {inputShape: [1], units:50, activation:'sigmoid'}));
     // Add an output layer
     model.add(tf.layers.dense({units: 1, useBias: true}));
 
@@ -170,4 +180,46 @@ function trainModel(model, inputs, labels) {
   }
 
 
-  
+  function testModel(model, inputData, normalizationData) {
+    const {inputMax, inputMin, labelMin, labelMax} = normalizationData;  
+    
+    // Generate predictions for a uniform range of numbers between 0 and 1;
+    // We un-normalize the data by doing the inverse of the min-max scaling 
+    // that we did earlier.
+    const [xs, preds] = tf.tidy(() => {
+      
+      const xs = tf.linspace(0, 1, 100);      
+      const preds = model.predict(xs.reshape([100, 1]));      
+      
+      const unNormXs = xs
+        .mul(inputMax.sub(inputMin))
+        .add(inputMin);
+      
+      const unNormPreds = preds
+        .mul(labelMax.sub(labelMin))
+        .add(labelMin);
+      
+      // Un-normalize the data
+      return [unNormXs.dataSync(), unNormPreds.dataSync()];
+    });
+    
+   
+    const predictedPoints = Array.from(xs).map((val, i) => {
+      return {x: val, y: preds[i]}
+    });
+    
+    const originalPoints = inputData.map(d => ({
+      x: d.hp, y: d.mpg,
+    }));
+    
+    
+    tfvis.render.scatterplot(
+      {name: 'Model Predictions vs Original Data'}, 
+      {values: [originalPoints, predictedPoints], series: ['original', 'predicted']}, 
+      {
+        xLabel: 'Horsepower',
+        yLabel: 'MPG',
+        height: 300
+      }
+    );
+  }
