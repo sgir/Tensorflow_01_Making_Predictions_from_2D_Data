@@ -48,14 +48,12 @@ document.addEventListener('DOMContentLoaded', fetch('https://storage.googleapis.
             const model = createModel()
             tfvis.show.modelSummary({name: 'Model Summary'}, model);
 
-
             // Convert the data to a form we can use for training.
             const tensorData = convertToTensor(cleanedDataset);
             const {inputs, labels} = tensorData;
     
             // Train the model  
-            await trainModel(model, inputs, labels);
-            console.log('Done Training');
+            trainModel(model, inputs, labels).then(console.log('Done Training'));
         })
     })
 );
@@ -112,7 +110,7 @@ function convertToTensor(data) {
       // Step 2. Convert data to Tensor
       // cleanedDataset is an Array of objects: eg. [{mpg: 18, hp: 130},..]
 
-      const inputs = data.map(d => d.horsepower) // [130, 140, ...]
+      const inputs = data.map(d => d.hp) // [130, 140, ...]
       const labels = data.map(d => d.mpg); // [18, 20, ..]
   
       // tf.tensor2d (values, shape?, dtype?)
@@ -148,7 +146,7 @@ function convertToTensor(data) {
  * 4. Train the model
  */
 
-async function trainModel(model, inputs, labels) {
+function trainModel(model, inputs, labels) {
     // Prepare the model for training.  
     model.compile({
       optimizer: tf.train.adam(),
@@ -159,7 +157,7 @@ async function trainModel(model, inputs, labels) {
     const batchSize = 32;
     const epochs = 50;
     
-    return await model.fit(inputs, labels, {
+    return  model.fit(inputs, labels, {
       batchSize,
       epochs,
       shuffle: true,
@@ -170,3 +168,6 @@ async function trainModel(model, inputs, labels) {
       )
     });
   }
+
+
+  
