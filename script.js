@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', fetch('https://storage.googleapis.
             console.log(' Problem fetching the JSON Dataset. Status Code: ' + response.status);
             return;
         }
-        response.json().then(data => {
+        return response.json().then(data => {
             // the car dataset is a JSON array
             console.log('Here is your dataset data', data)
             const filteredDataset = data.filter(car => 
@@ -29,10 +29,11 @@ document.addEventListener('DOMContentLoaded', fetch('https://storage.googleapis.
             
             // Load and plot the original input data that we are going to train on
             const values = cleanedDataset.map(d => ({
-            x: d.horsepower,
+            x: d.hp,
             y: d.mpg,
             }));
-        
+         
+            console.log(values)
             tfvis.render.scatterplot(
             {name: 'Horsepower v MPG'},
             {values}, 
