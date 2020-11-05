@@ -47,6 +47,15 @@ document.addEventListener('DOMContentLoaded', fetch('https://storage.googleapis.
             // A Model is a collection of layers, loss fn, optimziers - A Neural Network, really.
             const model = createModel()
             tfvis.show.modelSummary({name: 'Model Summary'}, model);
+
+
+            // Convert the data to a form we can use for training.
+            const tensorData = convertToTensor(cleanedDataset);
+            const {inputs, labels} = tensorData;
+    
+            // Train the model  
+            await trainModel(model, inputs, labels);
+            console.log('Done Training');
         })
     })
 );
@@ -133,3 +142,31 @@ function convertToTensor(data) {
     });  
 }
 
+
+
+/**
+ * 4. Train the model
+ */
+
+async function trainModel(model, inputs, labels) {
+    // Prepare the model for training.  
+    model.compile({
+      optimizer: tf.train.adam(),
+      loss: tf.losses.meanSquaredError,
+      metrics: ['mse'],
+    });
+    
+    const batchSize = 32;
+    const epochs = 50;
+    
+    return await model.fit(inputs, labels, {
+      batchSize,
+      epochs,
+      shuffle: true,
+      callbacks: tfvis.show.fitCallbacks(
+        { name: 'Training Performance' },
+        ['loss', 'mse'], 
+        { height: 200, callbacks: ['onEpochEnd'] }
+      )
+    });
+  }
