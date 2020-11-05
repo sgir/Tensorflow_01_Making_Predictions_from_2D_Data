@@ -165,7 +165,7 @@ function trainModel(model, inputs, labels) {
     });
     
     const batchSize = 32;
-    const epochs = 50;
+    const epochs = 100;
     
     return  model.fit(inputs, labels, {
       batchSize,
