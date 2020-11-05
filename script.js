@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', fetch('https://storage.googleapis.
 );
 
   
-  /**
+/**
  * 2. Create a Model / Neural Network
  * 
  */
@@ -77,3 +77,59 @@ document.addEventListener('DOMContentLoaded', fetch('https://storage.googleapis.
     return model;
 
  }
+
+
+
+ /**
+  * 3. Preprocess the Data 
+  * Convert cleaned data to Tensors
+  * Preprocess - Shuffle, Normalization
+  * MPG on the y-axis.
+ */
+function convertToTensor(data) {
+    // Wrapping these calculations in a tidy will dispose any 
+    // intermediate tensors.
+    
+    return tf.tidy(() => {
+      // Step 1. Shuffle the data    
+      // Here we randomize the order of the examples we will feed to the training algorithm. 
+      // Shuffling is important because typically during training the dataset is broken up into smaller subsets, called batches, that the model is trained on. 
+      // Shuffling helps each batch have a variety of data from across the data distribution. By doing so we help the model:
+      // Not learn things that are purely dependent on the order the data was fed in
+      // Not be sensitive to the structure in subgroups (e.g. if it only sees high horsepower cars for the first half of its training it may learn a relationship that does not apply across the rest of the dataset).
+      
+      tf.util.shuffle(data);
+  
+      // Step 2. Convert data to Tensor
+      // cleanedDataset is an Array of objects: eg. [{mpg: 18, hp: 130},..]
+
+      const inputs = data.map(d => d.horsepower) // [130, 140, ...]
+      const labels = data.map(d => d.mpg); // [18, 20, ..]
+  
+      // tf.tensor2d (values, shape?, dtype?)
+      // shape = (samples, features) => [392,1]
+      const inputTensor = tf.tensor2d(inputs, [inputs.length, 1]); 
+      const labelTensor = tf.tensor2d(labels, [labels.length, 1]); 
+  
+      //Step 3. Normalize the data to the range 0 - 1 using min-max scaling
+      const inputMax = inputTensor.max();
+      const inputMin = inputTensor.min();  
+      const labelMax = labelTensor.max();
+      const labelMin = labelTensor.min();
+  
+      // formula for linear scaling - https://en.wikipedia.org/wiki/Feature_scaling#Rescaling_(min-max_normalization)
+      const normalizedInputs = inputTensor.sub(inputMin).div(inputMax.sub(inputMin));
+      const normalizedLabels = labelTensor.sub(labelMin).div(labelMax.sub(labelMin));
+  
+      return {
+        inputs: normalizedInputs,
+        labels: normalizedLabels,
+        // Return the min/max bounds so we can use them later.
+        inputMax,
+        inputMin,
+        labelMax,
+        labelMin,
+      }
+    });  
+}
+
