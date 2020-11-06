@@ -17,3 +17,8 @@ dependencies are loaded as files via script tags.
 ### Data set
 
 - [cars dataset (JSON)](https://storage.googleapis.com/tfjs-tutorials/carsData.json)
+
+
+![input and model](https://user-images.githubusercontent.com/3318168/98407424-a8156380-203d-11eb-97a2-48c5216f6211.png)
+![training and output](https://user-images.githubusercontent.com/3318168/98407431-aa77bd80-203d-11eb-87a2-eb28c7a8586e.png)
+
